@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import re
+import collections
+
 
 class Command:
     pass
@@ -71,7 +74,31 @@ class VoltageOut(ReadCommand):
 
     @classmethod
     def to_python(cls, value):
-        return float(value)
+        return Float(value)
+
+
+class Track(WriteCommand):
+    """Set tracking mode: independent, series or parallel"""
+    cmd = "TRACK"
+
+    values = {"independent": 0,
+              "series": 1,
+              "parallel": 2}
+
+    @classmethod
+    def to_bus(cls, value):
+        value = Track.values[int(value)]
+        return value
+
+
+class Beep(WriteCommand):
+    """Enable/disable beep"""
+    cmd = "BEEP"
+
+    @classmethod
+    def to_bus(cls, value):
+        val = 0 if not value else 1
+        return val
 
 
 class EnableOutput(WriteCommand):
@@ -85,12 +112,37 @@ class EnableOutput(WriteCommand):
 
 
 class Status(ReadCommand):
-    """Raw power supply status"""
+    """Power supply status"""
     cmd = "STATUS"
+
+    python_type = collections.namedtuple("Status",
+                                         ["ch1_mode",
+                                          "ch2_mode",
+                                          "tracking",
+                                          "OVP", "OCP",
+                                          "ch1_enabled",
+                                          "ch2_enabled"])
 
     @classmethod
     def to_python(cls, value):
-        return int(value)
+        value = int.from_bytes(value.encode("ascii"), "big")
+
+        dct = {}
+        dct["ch1_mode"] = "CV" if value >> 0 else "CC"
+        dct["ch2_mode"] = "CV" if value >> 1 else "CC"
+
+        if (value >> 2) & 3 == 0:
+            dct["tracking"] = "independent"
+        elif (value >> 2) & 3 == 1:
+            dct["tracking"] = "series"
+        else:
+            dct["tracking"] = "parallel"
+
+        dct["OVP"] = True if value >> 4 else False
+        dct["OCP"] = True if value >> 5 else False
+        dct["ch1_enabled"] = True if value >> 6 else False
+        dct["ch2_enabled"] = True if value >> 7 else False
+        return Status.python_type(**dct)
 
 
 class IDN(ReadCommand):

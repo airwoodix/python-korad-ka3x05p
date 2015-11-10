@@ -136,8 +136,8 @@ class Status(ReadCommand):
         value = int.from_bytes(value.encode("ascii"), "big")
 
         dct = {}
-        dct["ch1_mode"] = "CV" if value >> 0 else "CC"
-        dct["ch2_mode"] = "CV" if value >> 1 else "CC"
+        dct["ch1_mode"] = "CV" if (value >> 0) & 1 else "CC"
+        dct["ch2_mode"] = "CV" if (value >> 1) & 1 else "CC"
 
         if (value >> 2) & 3 == 0:
             dct["tracking"] = "independent"
@@ -146,10 +146,10 @@ class Status(ReadCommand):
         else:
             dct["tracking"] = "parallel"
 
-        dct["OVP"] = True if value >> 4 else False
-        dct["OCP"] = True if value >> 5 else False
-        dct["ch1_enabled"] = True if value >> 6 else False
-        dct["ch2_enabled"] = True if value >> 7 else False
+        dct["OVP"] = True if (value >> 4) & 1 else False
+        dct["OCP"] = True if (value >> 5) & 1 else False
+        dct["ch1_enabled"] = True if (value >> 6) & 1 else False
+        dct["ch2_enabled"] = True if (value >> 7) & 1 else False
         return Status.python_type(**dct)
 
 

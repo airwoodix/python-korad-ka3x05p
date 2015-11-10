@@ -30,13 +30,21 @@ class WriteCommand(Command):
 
 # ====================
 
+float_rgx = re.compile(r"\d+(\.\d*)?")
+
+
+def Float(value):
+    return float(
+        float_rgx.match(value).group(0))
+
+
 class Current(ReadCommand, WriteCommand):
     """Current set point"""
     cmd = "ISET"
 
     @classmethod
     def to_python(cls, value):
-        return float(value)
+        return Float(value)
 
     @classmethod
     def to_bus(cls, value):
@@ -51,7 +59,7 @@ class Voltage(ReadCommand, WriteCommand):
 
     @classmethod
     def to_python(cls, value):
-        return float(value)
+        return Float(value)
 
     @classmethod
     def to_bus(cls, value):
@@ -65,7 +73,7 @@ class CurrentOut(ReadCommand):
 
     @classmethod
     def to_python(cls, value):
-        return float(value)
+        return Float(value)
 
 
 class VoltageOut(ReadCommand):

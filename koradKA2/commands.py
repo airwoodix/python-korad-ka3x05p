@@ -109,7 +109,7 @@ class Beep(WriteCommand):
         return val
 
 
-class EnableOutput(WriteCommand):
+class Output(WriteCommand):
     """Enable/disable output"""
     cmd = "OUT"
 

@@ -72,12 +72,12 @@ class Channel2(Channel):
     ch_num = 2
 
 
-class KoradKAv2_DualChannel(SerialDevice, metaclass=ControllerMeta):
-    from .commands import EnableOutput, Status, IDN
+class KoradKA_DualChannel(SerialDevice, metaclass=ControllerMeta):
+    from .commands import Output, Status, IDN, Beep, Track, OCP, OVP
     ch1 = Channel1
     ch2 = Channel2
 
 
-class KoradKAv2_SingleChannel(SerialDevice, metaclass=ControllerMeta):
-    from .commands import EnableOutput, Status, IDN
+class KoradKA_SingleChannel(SerialDevice, metaclass=ControllerMeta):
+    from .commands import Output, Status, IDN, Beep, OCP, OVP
     ch1 = Channel1

@@ -160,3 +160,23 @@ class IDN(ReadCommand):
     @classmethod
     def to_python(cls, value):
         return str(value)
+
+
+class OCP(WriteCommand):
+    """Enable/disable over-current protection"""
+    cmd = "OCP"
+
+    @classmethod
+    def to_bus(cls, value):
+        value = 1 if value else 0
+        return value
+
+
+class OVP(WriteCommand):
+    """Enable/disable over-voltage protection"""
+    cmd = "OVP"
+
+    @classmethod
+    def to_bus(cls, value):
+        value = 1 if value else 0
+        return value

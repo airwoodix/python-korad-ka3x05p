@@ -28,7 +28,8 @@ class SerialDeviceBase:
     def read_all(self):
         time.sleep(self.read_delay)
         num_to_read = self.conn.inWaiting()
-        return self.conn.read(num_to_read).decode(self.encoding)
+        value = self.conn.read(num_to_read)
+        return value.decode(self.encoding)
 
     def ask(self, cmd, *, channel=None, param=None):
         self.write(cmd, channel=channel, param=param, ask=True)

@@ -7,8 +7,9 @@ class Command:
 
 class ReadCommand(Command):
     @classmethod
-    def _getter(cls, channel=None):
+    def _getter(cls):
         def getter(self):
+            channel = getattr(self, "ch_num", None)
             a = self.ask(cls.cmd, channel=channel)
             return cls.to_python(a)
         return getter
@@ -16,8 +17,9 @@ class ReadCommand(Command):
 
 class WriteCommand(Command):
     @classmethod
-    def _setter(cls, channel=None):
+    def _setter(cls):
         def setter(self, value):
+            channel = getattr(self, "ch_num", None)
             value = cls.to_bus(value)
             self.write(cls.cmd, channel=channel, param=value)
         return setter
@@ -28,7 +30,6 @@ class WriteCommand(Command):
 class Current(ReadCommand, WriteCommand):
     """Current set point"""
     cmd = "ISET"
-    channels = [1, 2]
 
     @classmethod
     def to_python(cls, value):
@@ -44,7 +45,6 @@ class Current(ReadCommand, WriteCommand):
 class Voltage(ReadCommand, WriteCommand):
     """Voltage set point"""
     cmd = "VSET"
-    channels = [1, 2]
 
     @classmethod
     def to_python(cls, value):
@@ -59,7 +59,6 @@ class Voltage(ReadCommand, WriteCommand):
 class CurrentOut(ReadCommand):
     """Actual output current"""
     cmd = "IOUT"
-    channels = [1, 2]
 
     @classmethod
     def to_python(cls, value):
@@ -69,7 +68,6 @@ class CurrentOut(ReadCommand):
 class VoltageOut(ReadCommand):
     """Actual output voltage"""
     cmd = "VOUT"
-    channels = [1, 2]
 
     @classmethod
     def to_python(cls, value):

@@ -13,6 +13,18 @@ def convert_name(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
+# from P. Cladé's RigolD5000 code
+# https://pypi.python.org/pypi/RigolDG5000
+class ChannelProperty(object):
+    def __init__(self, cls):
+        self.klass = cls
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self.klass
+        return self.klass(obj)
+
+
 class ControllerMeta(type):
     def __new__(cls, name, bases, dct):
         out = dct.copy()
@@ -20,23 +32,9 @@ class ControllerMeta(type):
             if not inspect.isclass(klass):
                 continue
 
-            if hasattr(klass, "channels"):
-                getters, setters = [], []
+            if type(klass) == ControllerMeta:
+                out.update({convert_name(key): ChannelProperty(klass)})
 
-                if issubclass(klass, commands.ReadCommand):
-                    getters = (klass._getter(chan)
-                               for chan in klass.channels)
-                if issubclass(klass, commands.WriteCommand):
-                    setters = (klass._setter(chan)
-                               for chan in klass.channels)
-
-                names = ("{}{}".format(convert_name(key), chan)
-                         for chan in klass.channels)
-
-                for name, getter, setter in itertools.zip_longest(
-                        names, getters, setters):
-                    out.update({name: property(
-                        getter, setter, doc=klass.__doc__)})
             else:
                 getter, setter = None, None
 
@@ -48,19 +46,38 @@ class ControllerMeta(type):
                 out.update({convert_name(key): property(
                     getter, setter, doc=klass.__doc__)})
 
-        print(out)
-
         return type.__new__(cls, name, bases, out)
 
 
-class KoradKA2(SerialDevice, metaclass=ControllerMeta):
-    from .commands import Current, Voltage, CurrentOut, VoltageOut, \
-        EnableOutput, Status, IDN
+class Channel(metaclass=ControllerMeta):
+    def __init__(self, parent):
+        self.parent = parent
+
+    def __getattr__(self, key):
+        try:
+            return object.__getattribute__(self, key)
+        except AttributeError:
+            return object.__getattribute__(self.parent, key)
+
+    from .commands import Current, Voltage, CurrentOut, VoltageOut
 
 
-if __name__ == "__FAKE__":
-    # actually wanted
-    psu = KoradKA2(port)
-    psu.ch1.voltage = 12.5
-    print(psu.ch1.voltage_out)  # actual voltage
-    print(psu.idn)  # identification
+class Channel1(Channel):
+    """Output channel 1"""
+    ch_num = 1
+
+
+class Channel2(Channel):
+    """Output channel 2"""
+    ch_num = 2
+
+
+class KoradKAv2_DualChannel(SerialDevice, metaclass=ControllerMeta):
+    from .commands import EnableOutput, Status, IDN
+    ch1 = Channel1
+    ch2 = Channel2
+
+
+class KoradKAv2_SingleChannel(SerialDevice, metaclass=ControllerMeta):
+    from .commands import EnableOutput, Status, IDN
+    ch1 = Channel1

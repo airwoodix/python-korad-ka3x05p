@@ -56,3 +56,11 @@ class ControllerMeta(type):
 class KoradKA2(SerialDevice, metaclass=ControllerMeta):
     from .commands import Current, Voltage, CurrentOut, VoltageOut, \
         EnableOutput, Status, IDN
+
+
+if __name__ == "__FAKE__":
+    # actually wanted
+    psu = KoradKA2(port)
+    psu.ch1.voltage = 12.5
+    print(psu.ch1.voltage_out)  # actual voltage
+    print(psu.idn)  # identification

@@ -4,7 +4,7 @@ import time
 
 
 class SerialDeviceBase:
-    def __init__(self, *, encoding="ascii", read_delay=0.2):
+    def __init__(self, *, encoding, read_delay):
         self.conn = None
         self.encoding = encoding
         self.read_delay = float(read_delay)
@@ -36,8 +36,10 @@ class SerialDeviceBase:
 
 
 class SerialDevice(SerialDeviceBase):
-    def __init__(self, port, *, timeout=1, encoding="ascii"):
-        SerialDeviceBase.__init__(self)
+    def __init__(self, port, *, timeout=1, encoding="ascii",
+                 read_delay=0.1):
+        SerialDeviceBase.__init__(self, encoding=encoding,
+                                  read_delay=read_delay)
 
         import serial
         self.conn = serial.Serial(port, baudrate=9600,

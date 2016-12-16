@@ -4,7 +4,7 @@ import re
 import collections
 
 
-class Command:
+class Command(object):
     pass
 
 

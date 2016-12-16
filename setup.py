@@ -14,5 +14,5 @@ setup(
     author="Etienne Wodey",
     author_email="wodey@iqo.uni-hannover.de",
     version=read_version(),
-    install_requires=["pyserial"],
+    install_requires=["pyserial", "six>=1.10"],
     packages=["koradKA"])

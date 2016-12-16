@@ -3,6 +3,8 @@
 import re
 import inspect
 import itertools
+import six
+
 from . import commands
 from .serial_device import SerialDevice
 
@@ -49,7 +51,8 @@ class ControllerMeta(type):
         return type.__new__(cls, name, bases, out)
 
 
-class Channel(metaclass=ControllerMeta):
+@six.add_metaclass(ControllerMeta)
+class Channel(object):
     def __init__(self, parent):
         self.parent = parent
 
@@ -72,12 +75,14 @@ class Channel2(Channel):
     ch_num = 2
 
 
-class KoradKA_DualChannel(SerialDevice, metaclass=ControllerMeta):
+@six.add_metaclass(ControllerMeta)
+class KoradKA_DualChannel(SerialDevice):
     from .commands import Output, Status, IDN, Beep, Track, OCP, OVP
     ch1 = Channel1
     ch2 = Channel2
 
 
-class KoradKA_SingleChannel(SerialDevice, metaclass=ControllerMeta):
+@six.add_metaclass(ControllerMeta)
+class KoradKA_SingleChannel(SerialDevice):
     from .commands import Output, Status, IDN, Beep, OCP, OVP
     ch1 = Channel1

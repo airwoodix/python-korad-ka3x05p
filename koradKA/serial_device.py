@@ -3,14 +3,14 @@
 import time
 
 
-class SerialDeviceBase:
-    def __init__(self, *, encoding, read_delay):
+class SerialDeviceBase(object):
+    def __init__(self, encoding, read_delay):
         self.conn = None
         self.encoding = encoding
         self.read_delay = float(read_delay)
 
     @staticmethod
-    def format_command(cmd, *, channel, param, ask):
+    def format_command(cmd, channel, param, ask):
         if channel is None and param is not None:
             channel, param = param, channel
 
@@ -20,7 +20,7 @@ class SerialDeviceBase:
 
         return "{cmd}{channel}{param}{ask}".format(**locals())
 
-    def write(self, cmd, *, channel=None, param=None, ask=False):
+    def write(self, cmd, channel=None, param=None, ask=False):
         msg = self.format_command(cmd, channel=channel, param=param,
                                   ask=ask)
         return self.conn.write(msg.encode(self.encoding))
@@ -31,13 +31,13 @@ class SerialDeviceBase:
         value = self.conn.read(num_to_read)
         return value.decode(self.encoding)
 
-    def ask(self, cmd, *, channel=None, param=None):
+    def ask(self, cmd, channel=None, param=None):
         self.write(cmd, channel=channel, param=param, ask=True)
         return self.read_all()
 
 
 class SerialDevice(SerialDeviceBase):
-    def __init__(self, port, *, timeout=1, encoding="ascii",
+    def __init__(self, port, timeout=1, encoding="ascii",
                  read_delay=0.1):
         SerialDeviceBase.__init__(self, encoding=encoding,
                                   read_delay=read_delay)
@@ -48,8 +48,9 @@ class SerialDevice(SerialDeviceBase):
 
 
 class TestSerialDevice(SerialDeviceBase):
-    def __init__(self):
-        SerialDeviceBase.__init__(self)
+    def __init__(self, encoding="ascii", read_delay=0.1):
+        SerialDeviceBase.__init__(self, encoding=encoding,
+                                  read_delay=read_delay)
 
         class FakeConn:
             def write(self, msg):
@@ -66,10 +67,10 @@ class TestSerialDevice(SerialDeviceBase):
 
         self.conn = FakeConn()
 
-    def write(self, cmd, *, channel=None, param=None, ask=False):
+    def write(self, cmd, channel=None, param=None, ask=False):
         SerialDeviceBase.write(self, cmd, channel=channel, param=param,
                                ask=ask)
 
-    def ask(self, cmd, *, channel=None, param=None):
+    def ask(self, cmd, channel=None, param=None):
         a = SerialDeviceBase.ask(self, cmd, channel=channel, param=param)
         return a

@@ -43,8 +43,8 @@ class SerialDevice(SerialDeviceBase):
                                   read_delay=read_delay)
 
         import serial
-        self.conn = serial.Serial(port, baudrate=9600,
-                                  timeout=timeout)
+        self.conn = serial.serial_for_url(port, baudrate=9600,
+                                          timeout=timeout)
 
 
 class TestSerialDevice(SerialDeviceBase):

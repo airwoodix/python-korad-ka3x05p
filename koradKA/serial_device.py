@@ -108,5 +108,5 @@ class TestSerialDevice(SerialDeviceBase):
 def get_usb_prop_serial(port):
     cmd = "udevadm info -q property {}".format(port)
     res = subprocess.check_output(shlex.split(cmd)).decode("ascii").split("\n")
-    serial_num = [x for x in res if x.startwith("ID_SERIAL_SHORT")][0].split("=")[1]
+    serial_num = [x for x in res if x.startswith("ID_SERIAL_SHORT")][0].split("=")[1]
     return serial_num

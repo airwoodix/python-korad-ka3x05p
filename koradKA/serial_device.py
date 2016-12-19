@@ -69,11 +69,11 @@ class SerialDevice(SerialDeviceBase):
         self.conn = serial.serial_for_url(self.port, baudrate=9600,
                                           timeout=timeout)
 
-        self.lockfile = self.get_lockfile(port)
+        self.lockfile = self.get_lockfile()
 
     def get_lockfile(self):
         serial_num = get_usb_prop_serial(self.port)
-        return os.path.join("/tmp", "korad_{}.lock")
+        return os.path.join("/tmp", "korad_{}.lock".format(serial_num))
 
 
 class TestSerialDevice(SerialDeviceBase):

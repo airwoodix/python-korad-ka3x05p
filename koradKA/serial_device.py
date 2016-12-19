@@ -1,6 +1,22 @@
 # -*- coding: utf-8 -*-
 
+import os
 import time
+import fcntl
+import subprocess
+import shlex
+import contextlib
+
+
+@contextlib.contextmanager
+def optional_lock(lockfile, flags=fcntl.LOCK_EX):
+    if lockfile is None:
+        yield
+    else:
+        with open(lockfile, "w") as f:
+            fcntl.lockf(f, flags)
+            yield
+            fcntl.lockf(f, fcntl.LOCK_UN)
 
 
 class SerialDeviceBase(object):
@@ -8,6 +24,7 @@ class SerialDeviceBase(object):
         self.conn = None
         self.encoding = encoding
         self.read_delay = float(read_delay)
+        self.lockfile = None
 
     @staticmethod
     def format_command(cmd, channel, param, ask):
@@ -23,12 +40,17 @@ class SerialDeviceBase(object):
     def write(self, cmd, channel=None, param=None, ask=False):
         msg = self.format_command(cmd, channel=channel, param=param,
                                   ask=ask)
-        return self.conn.write(msg.encode(self.encoding))
+        with optional_lock(self.lockfile):
+            rv = self.conn.write(msg.encode(self.encoding))
+        return rv
 
     def read_all(self):
         time.sleep(self.read_delay)
         num_to_read = self.conn.inWaiting()
-        value = self.conn.read(num_to_read)
+
+        with optional_lock(self.lockfile):
+            value = self.conn.read(num_to_read)
+
         return value.decode(self.encoding)
 
     def ask(self, cmd, channel=None, param=None):
@@ -43,8 +65,15 @@ class SerialDevice(SerialDeviceBase):
                                   read_delay=read_delay)
 
         import serial
-        self.conn = serial.serial_for_url(port, baudrate=9600,
+        self.port = port
+        self.conn = serial.serial_for_url(self.port, baudrate=9600,
                                           timeout=timeout)
+
+        self.lockfile = self.get_lockfile(port)
+
+    def get_lockfile(self):
+        serial_num = get_usb_prop_serial(self.port)
+        return os.path.join("/tmp", "korad_{}.lock")
 
 
 class TestSerialDevice(SerialDeviceBase):
@@ -74,3 +103,10 @@ class TestSerialDevice(SerialDeviceBase):
     def ask(self, cmd, channel=None, param=None):
         a = SerialDeviceBase.ask(self, cmd, channel=channel, param=param)
         return a
+
+
+def get_usb_prop_serial(port):
+    cmd = "udevadm info -q property {}".format(port)
+    res = subprocess.check_output(shlex.split(cmd)).decode("ascii").split("\n")
+    serial_num = [x for x in res if x.startwith("ID_SERIAL_SHORT")][0].split("=")[1]
+    return serial_num

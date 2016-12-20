@@ -3,8 +3,6 @@
 import os
 import time
 import fcntl
-import subprocess
-import shlex
 import contextlib
 
 
@@ -24,7 +22,10 @@ class SerialDeviceBase(object):
         self.conn = None
         self.encoding = encoding
         self.read_delay = float(read_delay)
-        self.lockfile = None
+
+    @property
+    def lockfile(self):
+        return None
 
     @staticmethod
     def format_command(cmd, channel, param, ask):
@@ -69,11 +70,10 @@ class SerialDevice(SerialDeviceBase):
         self.conn = serial.serial_for_url(self.port, baudrate=9600,
                                           timeout=timeout)
 
-        self.lockfile = self.get_lockfile()
-
-    def get_lockfile(self):
-        serial_num = get_usb_prop_serial(self.port)
-        return os.path.join("/tmp", "korad_{}.lock".format(serial_num))
+    @SerialDeviceBase.lockfile.getter
+    def lockfile(self):
+        devname = self.port.split("/")[-1]
+        return os.path.join("/tmp", "korad_{}.lock".format(devname))
 
 
 class TestSerialDevice(SerialDeviceBase):
@@ -103,10 +103,3 @@ class TestSerialDevice(SerialDeviceBase):
     def ask(self, cmd, channel=None, param=None):
         a = SerialDeviceBase.ask(self, cmd, channel=channel, param=param)
         return a
-
-
-def get_usb_prop_serial(port):
-    cmd = "udevadm info -q property {}".format(port)
-    res = subprocess.check_output(shlex.split(cmd)).decode("ascii").split("\n")
-    serial_num = [x for x in res if x.startswith("ID_SERIAL_SHORT")][0].split("=")[1]
-    return serial_num

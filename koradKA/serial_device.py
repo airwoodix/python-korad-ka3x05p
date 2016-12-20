@@ -41,22 +41,22 @@ class SerialDeviceBase(object):
     def write(self, cmd, channel=None, param=None, ask=False):
         msg = self.format_command(cmd, channel=channel, param=param,
                                   ask=ask)
-        with optional_lock(self.lockfile):
-            rv = self.conn.write(msg.encode(self.encoding))
+        rv = self.conn.write(msg.encode(self.encoding))
         return rv
 
     def read_all(self):
         time.sleep(self.read_delay)
         num_to_read = self.conn.inWaiting()
-
-        with optional_lock(self.lockfile):
-            value = self.conn.read(num_to_read)
-
+        value = self.conn.read(num_to_read)
         return value.decode(self.encoding)
 
     def ask(self, cmd, channel=None, param=None):
-        self.write(cmd, channel=channel, param=param, ask=True)
-        return self.read_all()
+
+        with optional_lock(self.lockfile):
+            self.write(cmd, channel=channel, param=param, ask=True)
+            rv = self.read_all()
+
+        return rv
 
 
 class SerialDevice(SerialDeviceBase):

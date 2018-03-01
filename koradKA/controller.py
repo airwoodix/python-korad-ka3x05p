@@ -36,7 +36,6 @@ class ControllerMeta(type):
 
             if type(klass) == ControllerMeta:
                 out.update({convert_name(key): ChannelProperty(klass)})
-
             else:
                 getter, setter = None, None
 
@@ -47,6 +46,9 @@ class ControllerMeta(type):
 
                 out.update({convert_name(key): property(
                     getter, setter, doc=klass.__doc__)})
+
+            if not issubclass(klass, Channel):
+                del out[key]
 
         return type.__new__(cls, name, bases, out)
 

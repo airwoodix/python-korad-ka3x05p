@@ -5,3 +5,4 @@ __version__ = ".".join(map(str, __version_info__))
 
 
 from .controller import KoradKA_DualChannel, KoradKA_SingleChannel
+from .commands import TrackingMode

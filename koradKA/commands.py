@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import enum
 import collections
 
 
@@ -85,18 +86,18 @@ class VoltageOut(ReadCommand):
         return Float(value)
 
 
+class TrackingMode(enum.Enum):
+    INDEPENDENT, SERIES, PARALLEL = range(3)
+
+
 class Track(WriteCommand):
     """Set tracking mode: independent, series or parallel"""
     cmd = "TRACK"
 
-    values = {"independent": 0,
-              "series": 1,
-              "parallel": 2}
-
     @classmethod
     def to_bus(cls, value):
-        value = Track.values[int(value)]
-        return value
+        assert isinstance(value, TrackingMode)
+        return value.value
 
 
 class Beep(WriteCommand):

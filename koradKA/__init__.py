@@ -17,3 +17,13 @@ def identify(port, **kwds):
 
     match = re.search(r"KORAD\s?K[A|D](\d{4})", idn)
     return match.group(1) if match else None
+
+
+def get_psu(port):
+    model = identify(port)
+    if model == "3005":
+        return KoradKA_SingleChannel(port)
+    elif model == "3305":
+        return KoradKA_DualChannel(port)
+    else:
+        raise RuntimeError("Device identification failed")
